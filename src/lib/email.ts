@@ -2,6 +2,10 @@ import nodemailer from "nodemailer"
 
 function getTransporter() {
   const port = Number(process.env.SMTP_PORT ?? 587)
+  console.log("[email] SMTP_HOST:", process.env.SMTP_HOST)
+  console.log("[email] SMTP_PORT:", process.env.SMTP_PORT)
+  console.log("[email] SMTP_USER:", process.env.SMTP_USER ? "set" : "MISSING")
+  console.log("[email] SMTP_PASS:", process.env.SMTP_PASS ? "set" : "MISSING")
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port,
