@@ -49,7 +49,7 @@ export async function sendContactEmail(opts: {
   message: string
 }): Promise<void> {
   const { name, email, subject, message } = opts
-  const CONTACT_TO = process.env.CONTACT_EMAIL ?? "contact@dukshaft.com"
+  const CONTACT_TO = process.env.CONTACT_EMAIL ?? "clients@dukshaft.com"
   await getTransporter().sendMail({
     from: FROM,
     to: CONTACT_TO,

@@ -189,7 +189,7 @@ export default function AboutPage() {
                 <div className="pt-12 text-sm opacity-80 space-y-2">
                   <div className="font-bold text-lg mb-4">Dukshaft LLC</div>
                   <p>New York, USA</p>
-                  <p>contact@dukshaft.com</p>
+                  <p>clients@dukshaft.com</p>
                   <p>dukshaft.com</p>
                 </div>
              </div>
