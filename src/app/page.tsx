@@ -144,8 +144,19 @@ export default function HomePage() {
         return
       }
 
-      // Reset so the auto-scroll fires again if the user scrolls back up and down
-      hasAutoScrolledToContact.current = false
+      // User just scrolled back up past the sticky boundary — snap to section 2
+      // so they don't have to traverse the full gap between contact and apps.
+      if (hasAutoScrolledToContact.current) {
+        hasAutoScrolledToContact.current = false
+        isScrollingRef.current = true
+        setActiveTab(2)
+        window.scrollTo({ top: 2 * window.innerHeight * STEP_RATIO, behavior: "smooth" })
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+        scrollTimeoutRef.current = setTimeout(() => {
+          isScrollingRef.current = false
+        }, 1000)
+        return
+      }
 
       const step = window.innerHeight * STEP_RATIO
       let next = Math.floor((scrollY + step / 2) / step)
