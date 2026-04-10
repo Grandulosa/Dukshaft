@@ -102,11 +102,14 @@ const sites: SiteCardData[] = [
   },
 ]
 
-// Sections 0-2 live inside the sticky container (250 vh scroll range).
-// Section 3 (Contact) is placed after the sticky container and scrolls naturally.
-// The sticky element unsticks when scrollY ≈ 150 vh (250 vh − 100 vh viewport).
+// Sections 0-2 live in a sticky container (190 vh tall).
+// Sticky lifts at scrollY = 190vh − 100vh = 90vh.
+// Contact section is pulled up by 100dvh so it starts at document y = 90vh —
+// appearing the instant the sticky lifts, eliminating any blank scroll gap.
 const STICKY_SECTION_COUNT = 3
 const STEP_RATIO = 0.35
+const STICKY_CONTAINER_VH = 1.9   // 190vh
+const STICKY_LIFT_RATIO = STICKY_CONTAINER_VH - 1  // = 0.9
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0)
@@ -124,11 +127,8 @@ export default function HomePage() {
       if (isScrollingRef.current) return
       const scrollY = window.scrollY
       const vh = window.innerHeight
-      // Sticky container is 250 vh; it unsticks when scrollY = 250vh − 100vh = 150vh.
-      // Highlight the contact dot once the sticky starts lifting.
-      const stickyLiftY = vh * 1.5
 
-      if (scrollY >= stickyLiftY) {
+      if (scrollY >= vh * STICKY_LIFT_RATIO) {
         setActiveTab(3)
         return
       }
@@ -157,14 +157,16 @@ export default function HomePage() {
   const scrollTo = (index: number) => {
     if (index === 3) {
       setActiveTab(3)
-      contactRef.current?.scrollIntoView({ behavior: "smooth" })
+      if (contactRef.current) {
+        const top = contactRef.current.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top, behavior: "smooth" })
+      }
       return
     }
     isScrollingRef.current = true
     setActiveTab(index)
     window.scrollTo({ top: index * window.innerHeight * STEP_RATIO, behavior: "smooth" })
 
-    // Fallback for browsers without 'scrollend' support
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
     scrollTimeoutRef.current = setTimeout(() => {
       isScrollingRef.current = false
@@ -172,13 +174,13 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative w-full bg-transparent selection:bg-primary selection:text-primary-foreground">
+    <div className="relative w-full selection:bg-primary selection:text-primary-foreground">
 
-      {/* 250 vh scroll range for sticky sections 0–2.
-          Sticky lifts at scrollY ≈ 150 vh, revealing the contact section below. */}
-      <div className="h-[250vh]">
-        {/* Sticky viewport — sits flush below the 56 px navbar (h-14 = 3.5 rem) */}
-        <div className="sticky top-14 left-0 w-full h-[calc(100dvh-3.5rem)] overflow-hidden flex flex-col items-center justify-center">
+      {/* 190vh scroll range for sticky sections 0–2.
+          bg-background on the sticky ensures the contact section (pulled up beneath it)
+          doesn't bleed through the transparent section content before the lift point. */}
+      <div className="h-[190vh]">
+        <div className="sticky top-14 left-0 w-full h-[calc(100dvh-3.5rem)] overflow-hidden flex flex-col items-center justify-center bg-background">
 
           {/* Section 0: Hero */}
           {activeTab === 0 && (
@@ -275,8 +277,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Contact section — lives outside the sticky container, scrolls naturally */}
-      <div ref={contactRef}>
+      {/* Contact section pulled up by 100dvh so its top aligns with the sticky lift point (90vh).
+          No blank scroll gap: the contact appears the moment the sticky starts to leave. */}
+      <div ref={contactRef} className="-mt-[100dvh]">
         <ContactSection />
       </div>
 
