@@ -115,6 +115,7 @@ export default function HomePage() {
   const isScrollingRef = useRef(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const contactRef = useRef<HTMLDivElement>(null)
+  const hasAutoScrolledToContact = useRef(false)
 
   useEffect(() => {
     if ("scrollRestoration" in history) {
@@ -126,13 +127,25 @@ export default function HomePage() {
       if (isScrollingRef.current) return
       const scrollY = window.scrollY
 
-      // Once the sticky container (h-[200vh]) has scrolled past, show contact dot active.
+      // Once the sticky container (h-[200vh]) has scrolled past, auto-scroll to contact.
       // Sticky unsticks when scrollY > NAVBAR_PX + window.innerHeight (= 200vh - 100vh + navbar offset).
       const unstickScroll = window.innerHeight + NAVBAR_PX
       if (scrollY >= unstickScroll) {
         setActiveTab(3)
+        if (!hasAutoScrolledToContact.current) {
+          hasAutoScrolledToContact.current = true
+          isScrollingRef.current = true
+          contactRef.current?.scrollIntoView({ behavior: "smooth" })
+          if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+          scrollTimeoutRef.current = setTimeout(() => {
+            isScrollingRef.current = false
+          }, 1000)
+        }
         return
       }
+
+      // Reset so the auto-scroll fires again if the user scrolls back up and down
+      hasAutoScrolledToContact.current = false
 
       const step = window.innerHeight * STEP_RATIO
       let next = Math.floor((scrollY + step / 2) / step)
