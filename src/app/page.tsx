@@ -259,7 +259,7 @@ export default function HomePage() {
         {/* Section 3: Contact */}
         {activeTab === 3 && (
           <section className="absolute inset-0 flex flex-col items-center justify-center w-full h-full animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both">
-            <div className="w-full h-full pt-4">
+            <div className="w-full h-full pt-4 overflow-y-auto">
               <ContactSection />
             </div>
           </section>

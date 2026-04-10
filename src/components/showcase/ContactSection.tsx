@@ -94,9 +94,9 @@ export function ContactSection() {
     })
 
   return (
-    <section className="border-t bg-muted/30 py-32">
+    <section className="border-t bg-muted/30 py-8 md:py-20 lg:py-32">
       <div className="container max-w-6xl">
-        <div className="mb-16 text-center">
+        <div className="mb-8 md:mb-16 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to build something great?</h2>
           <p className="mt-4 text-lg text-muted-foreground mx-auto max-w-2xl">
             Have a project in mind? We&apos;d love to hear from you. Fill out the form below and we&apos;ll get back to you within 24 hours.
@@ -104,7 +104,7 @@ export function ContactSection() {
         </div>
 
         <div className="flex flex-col items-center max-w-4xl mx-auto">
-          <div className="grid gap-8 sm:grid-cols-3 w-full mb-12">
+          <div className="grid gap-6 sm:grid-cols-3 w-full mb-6 md:mb-12">
             {sideCards.map(({ icon: Icon, title, body }) => (
               <div key={title} className="flex flex-col items-center text-center gap-3">
                 <div className="rounded-xl bg-primary/5 p-4 text-primary ring-1 ring-primary/20">
