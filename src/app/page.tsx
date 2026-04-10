@@ -331,7 +331,7 @@ export default function HomePage() {
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">Client Reviews</h2>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-light">
-                  Don't just take our word for it. Here's what our clients say about working with Dukshaft.
+                  Don&apos;t just take our word for it. Here&apos;s what our clients say about working with Dukshaft.
                 </p>
               </div>
 
@@ -347,7 +347,7 @@ export default function HomePage() {
                           <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                         ))}
                       </div>
-                      <p className="text-base text-muted-foreground leading-relaxed flex-1">"{review.quote}"</p>
+                      <p className="text-base text-muted-foreground leading-relaxed flex-1">&quot;{review.quote}&quot;</p>
                       <div className="flex items-center gap-3 pt-2 border-t border-border/50">
                         <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${review.gradient} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
                           {review.name[0]}
