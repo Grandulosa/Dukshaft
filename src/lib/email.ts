@@ -1,20 +1,33 @@
 import nodemailer from "nodemailer"
 
 function getTransporter() {
+  const host = process.env.SMTP_HOST
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  const from = process.env.EMAIL_FROM
   const port = Number(process.env.SMTP_PORT ?? 587)
-  console.log("[email] SMTP_HOST:", process.env.SMTP_HOST)
-  console.log("[email] SMTP_PORT:", process.env.SMTP_PORT)
-  console.log("[email] SMTP_USER:", process.env.SMTP_USER ? "set" : "MISSING")
-  console.log("[email] SMTP_PASS:", process.env.SMTP_PASS ? "set" : "MISSING")
+
+  if (!host || !user || !pass || !from) {
+    const missing = [
+      !host && "SMTP_HOST",
+      !user && "SMTP_USER",
+      !pass && "SMTP_PASS",
+      !from && "EMAIL_FROM",
+    ]
+      .filter(Boolean)
+      .join(", ")
+    throw new Error(`Email not configured — missing env vars: ${missing}`)
+  }
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host,
     port,
     secure: port === 465,
     requireTLS: port !== 465,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+    auth: { user, pass },
+    connectionTimeout: 5_000,
+    greetingTimeout: 5_000,
+    socketTimeout: 5_000,
   })
 }
 

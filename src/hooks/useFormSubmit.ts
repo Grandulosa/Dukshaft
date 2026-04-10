@@ -85,6 +85,9 @@ export function useFormSubmit<TData>({
         const message =
           err instanceof Error ? err.message : "Something went wrong"
         setServerError(message)
+        const fe = (err as Error & { fieldErrors?: Record<string, string> })
+          .fieldErrors
+        if (fe) setFieldErrors(fe)
       } finally {
         setLoading(false)
         inFlight.current = false

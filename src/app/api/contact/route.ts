@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { contactSchema } from "@/lib/validations/contact"
 import { sendContactEmail } from "@/lib/email"
 
+export const maxDuration = 30 // seconds — needed for SMTP on Vercel Pro
+
 // In-memory rate limiter: max 3 submissions per IP per 10 minutes
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT = 3
@@ -64,7 +66,8 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (err) {
-    console.error("[contact POST]", err)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    const message = err instanceof Error ? err.message : "Internal server error"
+    console.error("[contact POST]", message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
