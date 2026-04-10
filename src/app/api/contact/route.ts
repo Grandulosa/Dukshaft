@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { contactSchema } from "@/lib/validations/contact"
+import { sendContactEmail } from "@/lib/email"
 
 // In-memory rate limiter: max 3 submissions per IP per 10 minutes
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -56,13 +57,7 @@ export async function POST(request: NextRequest) {
 
     const { name, email, subject, message } = result.data
 
-    // Deliver the message. In production, replace this with your preferred
-    // channel (Resend, SendGrid, a CRM webhook, etc.).
-    // For now we log it — the submission is still stored/processed correctly.
-    console.info("[contact]", { name, email, subject, messageLength: message.length })
-
-    // TODO: send email via nodemailer/Resend once SMTP is configured
-    // await sendContactEmail({ name, email, subject, message })
+    await sendContactEmail({ name, email, subject, message })
 
     return NextResponse.json(
       { message: "Message received. We'll be in touch within 1–2 business days." },

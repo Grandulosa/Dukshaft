@@ -42,6 +42,28 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
   })
 }
 
+export async function sendContactEmail(opts: {
+  name: string
+  email: string
+  subject: string
+  message: string
+}): Promise<void> {
+  const { name, email, subject, message } = opts
+  const CONTACT_TO = process.env.CONTACT_EMAIL ?? "contact@dukshaft.com"
+  await getTransporter().sendMail({
+    from: FROM,
+    to: CONTACT_TO,
+    replyTo: email,
+    subject: `[Inquiry] ${subject}`,
+    html: `
+      <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <hr/>
+      <p>${message.replace(/\n/g, "<br/>")}</p>
+    `,
+  })
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   await getTransporter().sendMail({
     from: FROM,

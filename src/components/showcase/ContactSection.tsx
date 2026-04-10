@@ -24,7 +24,7 @@ const sideCards = [
   {
     icon: Mail,
     title: "Email us",
-    body: "hello@dukshaft.studio",
+    body: "contact@dukshaft.com",
   },
   {
     icon: Clock,
