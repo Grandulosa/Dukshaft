@@ -15,16 +15,15 @@ function getTransporter() {
 const FROM = process.env.EMAIL_FROM ?? "noreply@dukshaft.studio"
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
 
-export async function sendVerificationEmail(to: string, token: string): Promise<void> {
-  const link = `${APP_URL}/verify-email?token=${token}`
+export async function sendVerificationEmail(to: string, code: string): Promise<void> {
   await getTransporter().sendMail({
     from: FROM,
     to,
-    subject: "Verify your email — Dukshaft Studio",
+    subject: "Your verification code — Dukshaft Studio",
     html: `
-      <p>Thanks for signing up. Click the link below to verify your email.</p>
-      <p><a href="${link}">${link}</a></p>
-      <p>This link expires in 24 hours. If you didn't create an account, ignore this email.</p>
+      <p>Use the code below to verify your email address.</p>
+      <p style="font-size:32px;font-weight:bold;letter-spacing:8px;">${code}</p>
+      <p>This code expires in 24 hours. If you didn't create an account, ignore this email.</p>
     `,
   })
 }

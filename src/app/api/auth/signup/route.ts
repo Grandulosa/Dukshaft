@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/db"
 import User from "@/models/User"
 import { signupSchema } from "@/lib/validations/auth"
 import { signToken, setAuthCookie } from "@/lib/auth"
-import { generateSecureToken, hashToken } from "@/lib/token"
+import { generateVerificationCode, hashToken } from "@/lib/token"
 import { sendVerificationEmail } from "@/lib/email"
 
 export async function POST(request: NextRequest) {
@@ -32,18 +32,18 @@ export async function POST(request: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
-    const verificationToken = generateSecureToken()
+    const verificationCode = generateVerificationCode()
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      emailVerificationToken: hashToken(verificationToken),
+      emailVerificationToken: hashToken(verificationCode),
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     })
 
     // Non-blocking — signup succeeds even if email delivery fails
-    sendVerificationEmail(email, verificationToken).catch((err) =>
+    sendVerificationEmail(email, verificationCode).catch((err) =>
       console.error("[signup] Email delivery failed:", err)
     )
 

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db"
 import User from "@/models/User"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import EmailVerificationBanner from "@/components/dashboard/EmailVerificationBanner"
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -31,12 +32,7 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      {!user.emailVerified && (
-        <div className="mt-6 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-          Your email address is not yet verified. Check your inbox for the
-          verification link.
-        </div>
-      )}
+      {!user.emailVerified && <EmailVerificationBanner />}
     </div>
   )
 }

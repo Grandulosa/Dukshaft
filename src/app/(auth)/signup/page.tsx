@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import type { Metadata } from "next"
 import { signupSchema } from "@/lib/validations/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +23,6 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-
   function validate(): boolean {
     const result = signupSchema.safeParse(form)
     if (!result.success) {
@@ -61,31 +58,12 @@ export default function SignupPage() {
         return
       }
 
-      setSuccess(true)
+      router.push("/verify-email")
     } catch {
       setServerError("Network error. Please try again.")
     } finally {
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We sent a verification link to <strong>{form.email}</strong>. Click
-            it to activate your account.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button asChild className="w-full">
-            <Link href="/dashboard">Continue to dashboard</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-    )
   }
 
   return (
