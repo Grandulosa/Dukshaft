@@ -103,8 +103,6 @@ const sites: SiteCardData[] = [
 ]
 
 // 3 sticky sections (hero, websites, apps). Each advances every 35% of viewport height.
-// h-[200vh] container: section 2 activates at 70vh scroll, sticky unsticks at ~100vh,
-// giving ~30vh of hold time before the contact section flows in naturally.
 const SECTION_COUNT = 3
 const STEP_RATIO = 0.35
 // Navbar height in px (h-14 = 3.5rem = 56px)
@@ -127,35 +125,17 @@ export default function HomePage() {
       if (isScrollingRef.current) return
       const scrollY = window.scrollY
 
-      // Once the sticky container (h-[200vh]) has scrolled past, auto-scroll to contact.
-      // Sticky unsticks when scrollY > NAVBAR_PX + window.innerHeight (= 200vh - 100vh + navbar offset).
-      const unstickScroll = window.innerHeight + NAVBAR_PX
-      if (scrollY >= unstickScroll) {
+      // The sticky container has height 175vh, so it unsticks at scrollY = 75vh.
+      // We trigger the state change to '3' once the contact section is prominent (e.g. at 100vh).
+      const contactThreshold = window.innerHeight + NAVBAR_PX
+      if (scrollY >= contactThreshold) {
         setActiveTab(3)
-        if (!hasAutoScrolledToContact.current) {
-          hasAutoScrolledToContact.current = true
-          isScrollingRef.current = true
-          contactRef.current?.scrollIntoView({ behavior: "smooth" })
-          if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-          scrollTimeoutRef.current = setTimeout(() => {
-            isScrollingRef.current = false
-          }, 1000)
-        }
         return
       }
 
-      // User just scrolled back up past the sticky boundary — snap to section 2
-      // so they don't have to traverse the full gap between contact and apps.
-      if (hasAutoScrolledToContact.current) {
+      // Reset contact auto-scroll flag if user scrolls back up
+      if (scrollY < contactThreshold - 100) {
         hasAutoScrolledToContact.current = false
-        isScrollingRef.current = true
-        setActiveTab(2)
-        window.scrollTo({ top: 2 * window.innerHeight * STEP_RATIO, behavior: "smooth" })
-        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-        scrollTimeoutRef.current = setTimeout(() => {
-          isScrollingRef.current = false
-        }, 1000)
-        return
       }
 
       const step = window.innerHeight * STEP_RATIO
@@ -198,9 +178,9 @@ export default function HomePage() {
   return (
     <div className="relative w-full bg-transparent selection:bg-primary selection:text-primary-foreground">
 
-      {/* Sticky scroll area — 200vh gives sections 0-2 their scroll range with ~30vh hold
-          on section 2 before the contact section scrolls into view naturally below */}
-      <div className="relative w-full h-[200vh]">
+      {/* Sticky scroll area — 175vh gives sections 0-2 their scroll range while
+          eliminating the huge gap before the contact section */}
+      <div className="relative w-full h-[175vh]">
 
         {/* Sticky viewport — sits flush below the 56 px navbar (h-14 = 3.5 rem) */}
         <div className="sticky top-14 left-0 w-full h-[calc(100dvh-3.5rem)] overflow-hidden flex flex-col items-center justify-center">
@@ -270,8 +250,8 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* Section 2: Apps */}
-          {activeTab === 2 && (
+          {/* Section 2: Apps (Keep rendered during transition to contact) */}
+          {(activeTab === 2 || activeTab === 3) && (
             <section className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both w-full">
               <div className="absolute right-0 bottom-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] -z-10 pointer-events-none" />
 
