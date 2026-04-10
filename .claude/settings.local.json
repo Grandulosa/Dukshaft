@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(cp /tmp/page_original.tsx \"/Users/dadonayahao/Documents/Project 1/src/app/page.tsx\")",
+      "Bash(cp /tmp/contact_original.tsx \"/Users/dadonayahao/Documents/Project 1/src/components/showcase/ContactSection.tsx\")"
     ]
   }
 }

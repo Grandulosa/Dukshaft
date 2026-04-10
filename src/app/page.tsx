@@ -102,20 +102,17 @@ const sites: SiteCardData[] = [
   },
 ]
 
-// Sections 0-2 live in a sticky container (190 vh tall).
-// Sticky lifts at scrollY = 190vh − 100vh = 90vh.
-// Contact section is pulled up by 100dvh so it starts at document y = 90vh —
-// appearing the instant the sticky lifts, eliminating any blank scroll gap.
-const STICKY_SECTION_COUNT = 3
+const SECTION_COUNT = 4
+// Each section advances every 50 % of the viewport height.
+// 3 transitions × 0.5 vh + 1 vh (viewport) = 2.5 vh → 250 vh container.
+// An extra 100 vh is added so section 3 has comfortable viewing time before
+// the sticky element unsticks and the page continues to scroll.
 const STEP_RATIO = 0.35
-const STICKY_CONTAINER_VH = 1.9   // 190vh
-const STICKY_LIFT_RATIO = STICKY_CONTAINER_VH - 1  // = 0.9
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState(0)
   const isScrollingRef = useRef(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const contactRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if ("scrollRestoration" in history) {
@@ -126,17 +123,10 @@ export default function HomePage() {
     const handleScroll = () => {
       if (isScrollingRef.current) return
       const scrollY = window.scrollY
-      const vh = window.innerHeight
-
-      if (scrollY >= vh * STICKY_LIFT_RATIO) {
-        setActiveTab(3)
-        return
-      }
-
-      const step = vh * STEP_RATIO
+      const step = window.innerHeight * STEP_RATIO
       let next = Math.floor((scrollY + step / 2) / step)
       if (next < 0) next = 0
-      if (next >= STICKY_SECTION_COUNT) next = STICKY_SECTION_COUNT - 1
+      if (next >= SECTION_COUNT) next = SECTION_COUNT - 1
       setActiveTab(next)
     }
 
@@ -155,18 +145,11 @@ export default function HomePage() {
   }, [])
 
   const scrollTo = (index: number) => {
-    if (index === 3) {
-      setActiveTab(3)
-      if (contactRef.current) {
-        const top = contactRef.current.getBoundingClientRect().top + window.scrollY
-        window.scrollTo({ top, behavior: "smooth" })
-      }
-      return
-    }
     isScrollingRef.current = true
     setActiveTab(index)
     window.scrollTo({ top: index * window.innerHeight * STEP_RATIO, behavior: "smooth" })
 
+    // Fallback for browsers without 'scrollend' support
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
     scrollTimeoutRef.current = setTimeout(() => {
       isScrollingRef.current = false
@@ -174,113 +157,114 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative w-full selection:bg-primary selection:text-primary-foreground">
+    // 250 vh gives the section switcher roughly 105 vh of scroll range for the 4 sections
+    // plus 145 vh to hold the last section in place before unsticking
+    <div className="relative w-full h-[250vh] bg-transparent selection:bg-primary selection:text-primary-foreground">
 
-      {/* 190vh scroll range for sticky sections 0–2.
-          bg-background on the sticky ensures the contact section (pulled up beneath it)
-          doesn't bleed through the transparent section content before the lift point. */}
-      <div className="h-[190vh]">
-        <div className="sticky top-14 left-0 w-full h-[calc(100dvh-3.5rem)] overflow-hidden flex flex-col items-center justify-center bg-background">
+      {/* Sticky viewport — sits flush below the 56 px navbar (h-14 = 3.5 rem) */}
+      <div className="sticky top-14 left-0 w-full h-[calc(100dvh-3.5rem)] overflow-hidden flex flex-col items-center justify-center">
 
-          {/* Section 0: Hero */}
-          {activeTab === 0 && (
-            <section className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both">
-              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 backdrop-blur-md px-5 py-2 text-sm font-medium text-primary mb-10 shadow-sm hover:bg-primary/10 transition-colors cursor-default">
-                <Sparkles className="w-4 h-4 mr-2" />
-                The standard for modern digital experiences
+        {/* Section 0: Hero */}
+        {activeTab === 0 && (
+          <section className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 backdrop-blur-md px-5 py-2 text-sm font-medium text-primary mb-10 shadow-sm hover:bg-primary/10 transition-colors cursor-default">
+              <Sparkles className="w-4 h-4 mr-2" />
+              The standard for modern digital experiences
+            </div>
+
+            <h1 className="max-w-5xl text-5xl font-extrabold tracking-tighter sm:text-7xl lg:text-[5.5rem] leading-[1.1]">
+              Websites and Mobile Apps <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
+                Built for Growth
+              </span>
+            </h1>
+            <p className="mt-8 max-w-2xl text-xl md:text-2xl text-muted-foreground leading-relaxed font-light">
+              At Dukshaft, we craft modern websites and powerful mobile applications that combine stunning design, smart functionality, and real business impact.
+            </p>
+
+            <div className="mt-12 flex flex-col sm:flex-row gap-5">
+              <Button
+                size="lg"
+                className="rounded-full h-14 px-8 text-lg font-medium shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all hover:scale-105 hover:shadow-[0_0_60px_-15px_rgba(79,70,229,0.7)] group"
+                onClick={() => scrollTo(1)}
+              >
+                Explore Our Work <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-full h-14 px-8 text-lg font-medium backdrop-blur-sm bg-background/50 border-primary/20 hover:bg-primary/5 transition-all"
+                onClick={() => scrollTo(3)}
+              >
+                Get in Touch
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {/* Section 1: Websites */}
+        {activeTab === 1 && (
+          <section className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both w-full">
+            <div className="absolute top-1/2 left-0 w-full h-[600px] bg-gradient-to-b from-transparent via-purple-500/5 to-transparent -translate-y-1/2 -z-10 pointer-events-none" />
+
+            <div className="container mb-12 flex flex-col items-center text-center">
+              <div className="inline-flex items-center justify-center p-3.5 mb-6 rounded-2xl bg-purple-500/10 ring-1 ring-purple-500/20 shadow-sm">
+                <Layers className="w-7 h-7 text-purple-600 dark:text-purple-400" />
               </div>
-
-              <h1 className="max-w-5xl text-5xl font-extrabold tracking-tighter sm:text-7xl lg:text-[5.5rem] leading-[1.1]">
-                Websites and Mobile Apps <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
-                  Built for Growth
-                </span>
-              </h1>
-              <p className="mt-8 max-w-2xl text-xl md:text-2xl text-muted-foreground leading-relaxed font-light">
-                At Dukshaft, we craft modern websites and powerful mobile applications that combine stunning design, smart functionality, and real business impact.
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">Mastercrafted Websites</h2>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-light">
+                Immersive, highly optimized web experiences that captivate users and convert leads. Engineered for speed, designed for absolute impact.
               </p>
+            </div>
 
-              <div className="mt-12 flex flex-col sm:flex-row gap-5">
-                <Button
-                  size="lg"
-                  className="rounded-full h-14 px-8 text-lg font-medium shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all hover:scale-105 hover:shadow-[0_0_60px_-15px_rgba(79,70,229,0.7)] group"
-                  onClick={() => scrollTo(1)}
-                >
-                  Explore Our Work <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full h-14 px-8 text-lg font-medium backdrop-blur-sm bg-background/50 border-primary/20 hover:bg-primary/5 transition-all"
-                  onClick={() => scrollTo(3)}
-                >
-                  Get in Touch
-                </Button>
+            <div className="w-full px-[max(1rem,calc((100vw-1400px)/2+2rem))]">
+              <DragCarousel arrowStep={340}>
+                {sites.map((site) => (
+                  <div key={site.name} className="transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl rounded-2xl">
+                    <SiteCard site={site} />
+                  </div>
+                ))}
+              </DragCarousel>
+            </div>
+          </section>
+        )}
+
+        {/* Section 2: Apps */}
+        {activeTab === 2 && (
+          <section className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both w-full">
+            <div className="absolute right-0 bottom-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] -z-10 pointer-events-none" />
+
+            <div className="container mb-12 flex flex-col items-center text-center">
+              <div className="inline-flex items-center justify-center p-3.5 mb-6 rounded-2xl bg-blue-500/10 ring-1 ring-blue-500/20 shadow-sm">
+                <Box className="w-7 h-7 text-blue-600 dark:text-blue-400" />
               </div>
-            </section>
-          )}
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">Enterprise Applications</h2>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-light">
+                Robust, scalable, and intuitive applications built on bleeding-edge modern stacks. We handle the complexity so your users experience absolute simplicity.
+              </p>
+            </div>
 
-          {/* Section 1: Websites */}
-          {activeTab === 1 && (
-            <section className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both w-full">
-              <div className="absolute top-1/2 left-0 w-full h-[600px] bg-gradient-to-b from-transparent via-purple-500/5 to-transparent -translate-y-1/2 -z-10 pointer-events-none" />
+            <div className="w-full px-[max(1rem,calc((100vw-1400px)/2+2rem))]">
+              <DragCarousel arrowStep={280}>
+                {apps.map((app) => (
+                  <div key={app.name} className="transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl rounded-2xl">
+                    <AppCard app={app} />
+                  </div>
+                ))}
+              </DragCarousel>
+            </div>
+          </section>
+        )}
 
-              <div className="container mb-12 flex flex-col items-center text-center">
-                <div className="inline-flex items-center justify-center p-3.5 mb-6 rounded-2xl bg-purple-500/10 ring-1 ring-purple-500/20 shadow-sm">
-                  <Layers className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">Mastercrafted Websites</h2>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-light">
-                  Immersive, highly optimized web experiences that captivate users and convert leads. Engineered for speed, designed for absolute impact.
-                </p>
-              </div>
+        {/* Section 3: Contact */}
+        {activeTab === 3 && (
+          <section className="absolute inset-0 flex flex-col items-center justify-center w-full h-full animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both">
+            <div className="w-full h-full pt-4">
+              <ContactSection />
+            </div>
+          </section>
+        )}
 
-              <div className="w-full px-[max(1rem,calc((100vw-1400px)/2+2rem))]">
-                <DragCarousel arrowStep={340}>
-                  {sites.map((site) => (
-                    <div key={site.name} className="transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl rounded-2xl">
-                      <SiteCard site={site} />
-                    </div>
-                  ))}
-                </DragCarousel>
-              </div>
-            </section>
-          )}
-
-          {/* Section 2: Apps */}
-          {activeTab === 2 && (
-            <section className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 ease-out fill-mode-both w-full">
-              <div className="absolute right-0 bottom-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] -z-10 pointer-events-none" />
-
-              <div className="container mb-12 flex flex-col items-center text-center">
-                <div className="inline-flex items-center justify-center p-3.5 mb-6 rounded-2xl bg-blue-500/10 ring-1 ring-blue-500/20 shadow-sm">
-                  <Box className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">Enterprise Applications</h2>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl font-light">
-                  Robust, scalable, and intuitive applications built on bleeding-edge modern stacks. We handle the complexity so your users experience absolute simplicity.
-                </p>
-              </div>
-
-              <div className="w-full px-[max(1rem,calc((100vw-1400px)/2+2rem))]">
-                <DragCarousel arrowStep={280}>
-                  {apps.map((app) => (
-                    <div key={app.name} className="transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl rounded-2xl">
-                      <AppCard app={app} />
-                    </div>
-                  ))}
-                </DragCarousel>
-              </div>
-            </section>
-          )}
-
-        </div>
-      </div>
-
-      {/* Contact section pulled up by 100dvh so its top aligns with the sticky lift point (90vh).
-          No blank scroll gap: the contact appears the moment the sticky starts to leave. */}
-      <div ref={contactRef} className="-mt-[100dvh]">
-        <ContactSection />
       </div>
 
       {/* Dot navigation */}
