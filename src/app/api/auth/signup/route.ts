@@ -42,10 +42,11 @@ export async function POST(request: NextRequest) {
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     })
 
-    // Non-blocking — signup succeeds even if email delivery fails
-    sendVerificationEmail(email, verificationCode).catch((err) =>
+    try {
+      await sendVerificationEmail(email, verificationCode)
+    } catch (err) {
       console.error("[signup] Email delivery failed:", err)
-    )
+    }
 
     const token = await signToken({
       sub: user._id.toString(),
