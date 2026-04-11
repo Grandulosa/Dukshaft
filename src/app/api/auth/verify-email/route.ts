@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
+
 import { connectDB } from "@/lib/db"
 import User from "@/models/User"
 import { hashToken } from "@/lib/token"
-import { getSession } from "@/lib/auth"
+import { getSession, signToken, setAuthCookie } from "@/lib/auth"
 import { sendWelcomeEmail } from "@/lib/email"
 
 export async function POST(request: NextRequest) {
@@ -43,7 +44,17 @@ export async function POST(request: NextRequest) {
       console.error("[verify-email] Welcome email failed:", err)
     )
 
-    return NextResponse.json({ message: "Email verified successfully." })
+    // Re-issue the JWT with emailVerified: true so the cookie reflects the update
+    const newToken = await signToken({
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      emailVerified: true,
+    })
+
+    const response = NextResponse.json({ message: "Email verified successfully." })
+    setAuthCookie(response, newToken)
+    return response
   } catch (err) {
     console.error("[verify-email]", err)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

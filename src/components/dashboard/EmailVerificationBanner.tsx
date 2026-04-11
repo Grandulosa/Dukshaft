@@ -9,15 +9,24 @@ export default function EmailVerificationBanner() {
   const router = useRouter()
   const [code, setCode] = useState("")
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent" | "error">("idle")
+  const [resendError, setResendError] = useState("")
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "loading" | "error">("idle")
   const [verifyError, setVerifyError] = useState("")
 
   async function handleResend() {
     setResendStatus("loading")
+    setResendError("")
     try {
       const res = await fetch("/api/auth/resend-verification", { method: "POST" })
-      setResendStatus(res.ok ? "sent" : "error")
+      if (res.ok) {
+        setResendStatus("sent")
+      } else {
+        const data = await res.json()
+        setResendError(data.error ?? "Failed to send — try again")
+        setResendStatus("error")
+      }
     } catch {
+      setResendError("Something went wrong. Please try again.")
       setResendStatus("error")
     }
   }
@@ -75,7 +84,7 @@ export default function EmailVerificationBanner() {
         <p className="mt-2 text-xs text-red-600">{verifyError}</p>
       )}
 
-      <div className="mt-3">
+      <div className="mt-3 space-y-1">
         {resendStatus === "sent" ? (
           <p className="text-xs text-yellow-700">Code sent! Check your inbox.</p>
         ) : (
@@ -84,8 +93,11 @@ export default function EmailVerificationBanner() {
             disabled={resendStatus === "loading"}
             className="text-xs text-yellow-700 underline underline-offset-2 hover:text-yellow-900 disabled:opacity-50"
           >
-            {resendStatus === "loading" ? "Sending..." : resendStatus === "error" ? "Failed — try again" : "Resend code"}
+            {resendStatus === "loading" ? "Sending..." : "Resend code"}
           </button>
+        )}
+        {resendStatus === "error" && resendError && (
+          <p className="text-xs text-red-600">{resendError}</p>
         )}
       </div>
     </div>

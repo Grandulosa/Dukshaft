@@ -5,6 +5,8 @@ import { getSession } from "@/lib/auth"
 import { generateVerificationCode, hashToken } from "@/lib/token"
 import { sendVerificationEmail } from "@/lib/email"
 
+const RESEND_COOLDOWN_MS = 60_000 // 1 minute between resends
+
 export async function POST() {
   try {
     const session = await getSession()
@@ -26,14 +28,37 @@ export async function POST() {
       )
     }
 
-    const verificationCode = generateVerificationCode()
-    user.emailVerificationToken = hashToken(verificationCode)
-    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    await user.save()
+    // Rate limit: if a token was issued within the last minute, reject
+    const cooldownThreshold = Date.now() + 24 * 60 * 60 * 1000 - RESEND_COOLDOWN_MS
+    if (
+      user.emailVerificationExpires &&
+      user.emailVerificationExpires.getTime() > cooldownThreshold
+    ) {
+      return NextResponse.json(
+        { error: "Please wait a minute before requesting another code." },
+        { status: 429 }
+      )
+    }
 
-    sendVerificationEmail(user.email, verificationCode).catch((err) =>
+    const verificationCode = generateVerificationCode()
+    const hashedToken = hashToken(verificationCode)
+    const newExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+    // Send the email BEFORE writing to DB — if delivery fails, the old code
+    // remains valid and the cooldown window is not consumed.
+    try {
+      await sendVerificationEmail(user.email, verificationCode)
+    } catch (err) {
       console.error("[resend-verification] Email delivery failed:", err)
-    )
+      return NextResponse.json(
+        { error: "Failed to send the email. Please try again in a moment." },
+        { status: 503 }
+      )
+    }
+
+    user.emailVerificationToken = hashedToken
+    user.emailVerificationExpires = newExpires
+    await user.save()
 
     return NextResponse.json({ message: "Verification email sent." })
   } catch (err) {

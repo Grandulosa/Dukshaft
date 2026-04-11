@@ -20,6 +20,7 @@ export default function VerifyEmailPage() {
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "loading" | "error">("idle")
   const [verifyError, setVerifyError] = useState("")
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent" | "error">("idle")
+  const [resendError, setResendError] = useState("")
 
   async function handleVerify() {
     if (code.length !== 6) return
@@ -47,10 +48,18 @@ export default function VerifyEmailPage() {
 
   async function handleResend() {
     setResendStatus("loading")
+    setResendError("")
     try {
       const res = await fetch("/api/auth/resend-verification", { method: "POST" })
-      setResendStatus(res.ok ? "sent" : "error")
+      if (res.ok) {
+        setResendStatus("sent")
+      } else {
+        const data = await res.json()
+        setResendError(data.error ?? "Failed to send — try again")
+        setResendStatus("error")
+      }
     } catch {
+      setResendError("Something went wrong. Please try again.")
       setResendStatus("error")
     }
   }
@@ -91,7 +100,7 @@ export default function VerifyEmailPage() {
           {verifyStatus === "loading" ? "Verifying…" : "Verify email"}
         </Button>
 
-        <div className="text-sm text-muted-foreground text-center">
+        <div className="text-sm text-muted-foreground text-center space-y-1">
           {resendStatus === "sent" ? (
             <span>Code sent! Check your inbox.</span>
           ) : (
@@ -102,13 +111,12 @@ export default function VerifyEmailPage() {
                 disabled={resendStatus === "loading"}
                 className="text-foreground underline-offset-4 hover:underline disabled:opacity-50"
               >
-                {resendStatus === "loading"
-                  ? "Sending…"
-                  : resendStatus === "error"
-                  ? "Failed — try again"
-                  : "Resend code"}
+                {resendStatus === "loading" ? "Sending…" : "Resend code"}
               </button>
             </span>
+          )}
+          {resendStatus === "error" && resendError && (
+            <p className="text-xs text-destructive">{resendError}</p>
           )}
         </div>
       </CardFooter>
