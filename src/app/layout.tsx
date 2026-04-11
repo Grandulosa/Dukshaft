@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
+import { CookieConsent } from "@/components/layout/CookieConsent"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -35,6 +36,7 @@ export default function RootLayout({
           <Footer />
         </div>
         <Toaster />
+        <CookieConsent />
       </body>
     </html>
   )
