@@ -31,8 +31,8 @@ function getTransporter() {
   })
 }
 
-const FROM = process.env.EMAIL_FROM ?? "noreply@dukshaft.studio"
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+const FROM = process.env.EMAIL_FROM ? `"Dukshaft Studio" <${process.env.EMAIL_FROM}>` : '"Dukshaft Studio" <clients@dukshaft.com>'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://dukshaft.com"
 
 export async function sendVerificationEmail(to: string, code: string): Promise<void> {
   await getTransporter().sendMail({
